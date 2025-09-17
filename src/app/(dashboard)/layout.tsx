@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Lama Dev School Management Dashboard",
+  title: "School OS",
   description: "Next.js School Management System",
 };
 
@@ -26,7 +26,7 @@ export default function DashboardLayout({
           className="flex items-center justify-center lg:justify-start gap-2"
         >
           <Image src="/logo.png" alt="logo" width={32} height={32} />
-          <span className="hidden lg:block ">SchoolOS</span>
+          <span className="hidden lg:block font-bold">SchoolOS</span>
         </Link>
         <Menu />
       </div>
