@@ -9,6 +9,8 @@ import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Class, Exam, Prisma, Subject, Teacher } from "@prisma/client";
 
+import { auth } from "@clerk/nextjs/server";
+
 type ExamList = Exam & {
   lesson: {
     subject: Subject;
@@ -17,36 +19,44 @@ type ExamList = Exam & {
   };
 };
 
-const columns = [
-  {
-    header: "Subject Name",
-    accessor: "name",
-  },
-  {
-    header: "Class",
-    accessor: "class",
-  },
-  {
-    header: "Teacher",
-    accessor: "teacher",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Date",
-    accessor: "date",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Actions",
-    accessor: "action",
-  },
-];
-
 const ExamListPage = async ({
   searchParams,
 }: {
   searchParams: { [key: string]: string | undefined };
 }) => {
+  const { userId, sessionClaims } = await auth();
+  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const currentUserId = userId;
+
+  const columns = [
+    {
+      header: "Subject Name",
+      accessor: "name",
+    },
+    {
+      header: "Class",
+      accessor: "class",
+    },
+    {
+      header: "Teacher",
+      accessor: "teacher",
+      className: "hidden md:table-cell",
+    },
+    {
+      header: "Date",
+      accessor: "date",
+      className: "hidden md:table-cell",
+    },
+    ...(role === "admin" || role === "teacher"
+      ? [
+          {
+            header: "Actions",
+            accessor: "action",
+          },
+        ]
+      : []),
+  ];
+
   const renderRow = (item: ExamList) => (
     <tr
       key={item.id}
@@ -108,34 +118,34 @@ const ExamListPage = async ({
 
   // ROLE CONDITIONS
 
-  // switch (role) {
-  //   case "admin":
-  //     break;
-  //   case "teacher":
-  //     query.lesson.teacherId = currentUserId!;
-  //     break;
-  //   case "student":
-  //     query.lesson.class = {
-  //       students: {
-  //         some: {
-  //           id: currentUserId!,
-  //         },
-  //       },
-  //     };
-  //     break;
-  //   case "parent":
-  //     query.lesson.class = {
-  //       students: {
-  //         some: {
-  //           parentId: currentUserId!,
-  //         },
-  //       },
-  //     };
-  //     break;
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.lesson.teacherId = currentUserId!;
+      break;
+    case "student":
+      query.lesson.class = {
+        students: {
+          some: {
+            id: currentUserId!,
+          },
+        },
+      };
+      break;
+    case "parent":
+      query.lesson.class = {
+        students: {
+          some: {
+            parentId: currentUserId!,
+          },
+        },
+      };
+      break;
 
-  //   default:
-  //     break;
-  // }
+    default:
+      break;
+  }
 
   const [data, count] = await prisma.$transaction([
     prisma.exam.findMany({
@@ -175,7 +185,7 @@ const ExamListPage = async ({
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={examsData} />
+      <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}
       <Pagination page={p} count={count} />
     </div>
