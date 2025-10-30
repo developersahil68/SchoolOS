@@ -12,35 +12,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  {
-    name: "Mon",
-    present: 60,
-    absent: 40,
-  },
-  {
-    name: "Tue",
-    present: 70,
-    absent: 60,
-  },
-  {
-    name: "Wed",
-    present: 90,
-    absent: 75,
-  },
-  {
-    name: "Thu",
-    present: 90,
-    absent: 75,
-  },
-  {
-    name: "Fri",
-    present: 65,
-    absent: 55,
-  },
-];
-
-const AttendanceChart = () => {
+const AttendanceChart = ({
+  data,
+}: {
+  data: { name: string; present: number; absent: number }[];
+}) => {
   return (
     <div className="bg-white rounded-lg p-4 h-full">
       <div className="flex justify-between items-center">
