@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import FormModal from "./FormModal";
 
 export type FormContainerProps = {
   table:
@@ -76,7 +77,7 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
 
   return (
     <div className="">
-      <FormContainer
+      <FormModal
         table={table}
         type={type}
         data={data}

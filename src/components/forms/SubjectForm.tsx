@@ -6,7 +6,13 @@ import InputField from "../InputField";
 import { subjectSchema, SubjectSchema } from "@/lib/formValidationSchemas";
 import { createSubject, updateSubject } from "@/lib/actions";
 import { useFormState } from "react-dom";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  startTransition,
+  useActionState,
+  useEffect,
+} from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
@@ -26,12 +32,12 @@ const SubjectForm = ({
     handleSubmit,
     formState: { errors },
   } = useForm<SubjectSchema>({
-    resolver: zodResolver(subjectSchema),
+    resolver: zodResolver(subjectSchema) as any,
   });
 
   // AFTER REACT 19 IT'LL BE USEACTIONSTATE
 
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     type === "create" ? createSubject : updateSubject,
     {
       success: false,
@@ -39,9 +45,15 @@ const SubjectForm = ({
     }
   );
 
+  // const onSubmit = handleSubmit((data) => {
+  //   console.log(data);
+  //   formAction(data);
+  // });
+
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
-    formAction(data);
+    startTransition(() => {
+      formAction({ ...data });
+    });
   });
 
   const router = useRouter();
