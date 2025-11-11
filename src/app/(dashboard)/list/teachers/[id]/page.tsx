@@ -10,11 +10,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-const SingleTeacherPage = async ({
-  params: { id },
-}: {
-  params: { id: string };
+// const SingleTeacherPage = async ({
+//   params: { id },
+// }: {
+//   params: { id: string };
+// }) => {
+
+// in nextjs new version params are now async so they need to be awaited before using
+
+const SingleTeacherPage = async (props: {
+  params: Promise<{ id: string }>;
 }) => {
+  const { params } = props;
+  const { id } = await params;
   const { sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
 
@@ -23,7 +31,7 @@ const SingleTeacherPage = async ({
         _count: { subjects: number; lessons: number; classes: number };
       })
     | null = await prisma.teacher.findUnique({
-    where: { id },
+    where: { username: id },
     include: {
       _count: {
         select: {
