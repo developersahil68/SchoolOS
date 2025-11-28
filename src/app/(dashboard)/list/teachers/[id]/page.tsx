@@ -1,6 +1,5 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
-import BigCalendar from "@/components/BigCalendar";
 import FormContainer from "@/components/FormContainer";
 import Performance from "@/components/Performance";
 import prisma from "@/lib/prisma";
@@ -31,7 +30,7 @@ const SingleTeacherPage = async (props: {
         _count: { subjects: number; lessons: number; classes: number };
       })
     | null = await prisma.teacher.findUnique({
-    where: { username: id },
+    where: { id },
     include: {
       _count: {
         select: {
@@ -43,7 +42,9 @@ const SingleTeacherPage = async (props: {
     },
   });
 
+  console.log(teacher);
   if (!teacher) {
+    console.log(teacher);
     return notFound();
   }
   return (

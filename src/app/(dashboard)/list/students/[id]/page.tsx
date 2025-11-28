@@ -11,11 +11,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-const SingleStudentPage = async ({
-  params: { id },
-}: {
-  params: { id: string };
+const SingleStudentPage = async (props: {
+  params: Promise<{ id: string }>;
 }) => {
+  const { params } = props;
+  const { id } = await params;
   const { sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
 
@@ -31,6 +31,7 @@ const SingleStudentPage = async ({
   });
 
   if (!student) {
+    console.log(student);
     return notFound();
   }
 
