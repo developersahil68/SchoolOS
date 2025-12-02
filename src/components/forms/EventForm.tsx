@@ -4,29 +4,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField";
 import {
-  examSchema,
-  ExamSchema,
-  subjectSchema,
-  SubjectSchema,
-} from "@/lib/formValidationSchemas";
-import {
-  createExam,
-  createSubject,
-  updateExam,
-  updateSubject,
-} from "@/lib/actions";
-import { useFormState } from "react-dom";
-import {
   Dispatch,
   SetStateAction,
   startTransition,
   useActionState,
   useEffect,
 } from "react";
-import { toast } from "react-toastify";
+import { eventSchema, EventSchema } from "@/lib/formValidationSchemas";
+import { createEvent, updateEvent } from "@/lib/actions";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
-const ExamForm = ({
+const EventForm = ({
   type,
   data,
   setOpen,
@@ -41,28 +30,25 @@ const ExamForm = ({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ExamSchema>({
-    resolver: zodResolver(examSchema) as any,
+  } = useForm<EventSchema>({
+    resolver: zodResolver(eventSchema) as any,
   });
 
-  // AFTER REACT 19 IT'LL BE USEACTIONSTATE
-
   const [state, formAction] = useActionState(
-    type === "create" ? createExam : updateExam,
+    type === "create" ? createEvent : updateEvent,
     {
       success: false,
       error: false,
     }
   );
 
-  // const onSubmit = handleSubmit((data) => {
-  //   console.log(data);
-  //   formAction(data);
-  // });
-
   const onSubmit = handleSubmit((data) => {
     startTransition(() => {
-      formAction(data);
+      formAction({
+        ...data,
+        classId:
+          !data.classId || isNaN(Number(data.classId)) ? null : data.classId,
+      });
     });
   });
 
@@ -70,42 +56,48 @@ const ExamForm = ({
 
   useEffect(() => {
     if (state.success) {
-      toast(`Exam has been ${type === "create" ? "created" : "updated"}!`);
+      toast(`Event has been ${type === "create" ? "created" : "updated"}!`);
       setOpen(false);
       router.refresh();
     }
   }, [state, router, type, setOpen]);
 
-  // const { lessons } = relatedData;
-
-  const { lessons = [] } = relatedData || {};
+  const { classes } = relatedData;
 
   return (
     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new exam" : "Update the exam"}
+        {type === "create" ? "Create a new event" : "Update the event"}
       </h1>
 
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
-          label="Exam title"
+          label="Title"
           name="title"
           defaultValue={data?.title}
           register={register}
           error={errors?.title}
         />
         <InputField
-          label="Start Date"
+          label="Start Time"
           name="startTime"
-          defaultValue={data?.startTime}
+          defaultValue={
+            data?.startTime
+              ? new Date(data.startTime).toISOString().slice(0, 16)
+              : ""
+          }
           register={register}
           error={errors?.startTime}
           type="datetime-local"
         />
         <InputField
-          label="End Date"
+          label="End Time"
           name="endTime"
-          defaultValue={data?.endTime}
+          defaultValue={
+            data?.endTime
+              ? new Date(data.endTime).toISOString().slice(0, 16)
+              : ""
+          }
           register={register}
           error={errors?.endTime}
           type="datetime-local"
@@ -121,36 +113,47 @@ const ExamForm = ({
           />
         )}
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Lesson</label>
+          <label className="text-xs text-gray-500">Class (Optional)</label>
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("lessonId", { valueAsNumber: true })}
-            defaultValue={data?.lessonId ?? ""}
+            {...register("classId")}
+            defaultValue={data?.classId || ""}
           >
-            <option value="" disabled>
-              Select a lesson
-            </option>
-            {lessons?.map((lesson: { id: number; name: string }) => (
-              <option value={lesson.id} key={lesson.id}>
-                {lesson.name}
+            <option value="">All Classes</option>
+            {classes?.map((classItem: { id: number; name: string }) => (
+              <option value={classItem.id} key={classItem.id}>
+                {classItem.name}
               </option>
             ))}
           </select>
-          {errors.lessonId?.message && (
+          {errors.classId?.message && (
             <p className="text-xs text-red-400">
-              {errors.lessonId.message.toString()}
+              {errors.classId.message.toString()}
             </p>
           )}
         </div>
       </div>
+      <div className="flex flex-col gap-2 w-full">
+        <label className="text-xs text-gray-500">Description</label>
+        <textarea
+          className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full min-h-[100px]"
+          {...register("description")}
+          defaultValue={data?.description}
+        />
+        {errors.description?.message && (
+          <p className="text-xs text-red-400">
+            {errors.description.message.toString()}
+          </p>
+        )}
+      </div>
       {state.error && (
         <span className="text-red-500">Something went wrong!</span>
       )}
-      <button className="bg-blue-400 text-white p-2 rounded-md">
+      <button type="submit" className="bg-blue-400 text-white p-2 rounded-md">
         {type === "create" ? "Create" : "Update"}
       </button>
     </form>
   );
 };
 
-export default ExamForm;
+export default EventForm;
