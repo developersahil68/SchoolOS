@@ -178,10 +178,15 @@ export const createTeacher = async (
 
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Clerk error details:", err);
+    console.error("CLERK ERROR:", err.errors);
     console.log(err);
-    return { success: false, error: true };
+    return {
+      success: false,
+      error: true,
+      errorMessage: err.errors?.[0]?.message,
+    };
   }
 };
 

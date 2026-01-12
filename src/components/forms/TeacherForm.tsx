@@ -44,6 +44,7 @@ const TeacherForm = ({
     {
       success: false,
       error: false,
+      // errorMessage: undefined as string | undefined,
     }
   );
 
@@ -215,8 +216,9 @@ const TeacherForm = ({
         </CldUploadWidget>
       </div>
       {state.error && (
-        <span className="text-red-500">Something went wrong!</span>
+        <span className="text-red-500">{"Something went wrong"}</span>
       )}
+
       <button className="bg-blue-400 text-white p-2 rounded-md">
         {type === "create" ? "Create" : "Update"}
       </button>
