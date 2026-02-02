@@ -4,7 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField";
 import Image from "next/image";
-import { Dispatch, SetStateAction, startTransition, useActionState, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  startTransition,
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 import {
   studentSchema,
   StudentSchema,
@@ -48,16 +55,10 @@ const StudentForm = ({
     {
       success: false,
       error: false,
-    }
+    },
   );
 
-  // const onSubmit = handleSubmit((data) => {
-  //   console.log("hello");
-  //   console.log(data);
-  //   formAction({ ...data, img: img?.secure_url });
-  // });
-
-   const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit((data) => {
     startTransition(() => {
       formAction({ ...data, img: img?.secure_url });
     });
@@ -244,7 +245,7 @@ const StudentForm = ({
                   {classItem._count.students + "/" + classItem.capacity}{" "}
                   Capacity)
                 </option>
-              )
+              ),
             )}
           </select>
           {errors.classId?.message && (
