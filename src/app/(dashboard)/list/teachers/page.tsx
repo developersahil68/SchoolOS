@@ -16,8 +16,9 @@ type TeacherList = Teacher & { subjects: Subject[] } & { classes: Class[] };
 const TeacherListPage = async ({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
+  const resolvedSearchParams = await searchParams;
   const { sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const columns = [
@@ -104,9 +105,11 @@ const TeacherListPage = async ({
     </tr>
   );
 
-  const { page, ...queryParams } = await searchParams;
+  const { page, ...queryParams } = resolvedSearchParams;
 
-  const p = page ? parseInt(page) : 1;
+  // const p = page ? parseInt(page) : 1;
+  const pageValue = Array.isArray(page) ? page[0] : page;
+  const p = pageValue ? parseInt(pageValue) : 1;
 
   // uRl Params Condition
 
@@ -115,16 +118,17 @@ const TeacherListPage = async ({
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
+        const normalizedValue = Array.isArray(value) ? value[0] : value;
         switch (key) {
           case "classId":
             query.lessons = {
               some: {
-                classId: parseInt(value),
+                classId: parseInt(normalizedValue),
               },
             };
             break;
           case "search":
-            query.name = { contains: value, mode: "insensitive" };
+            query.name = { contains: normalizedValue, mode: "insensitive" };
             break;
           default:
             break;

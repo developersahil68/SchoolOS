@@ -21,8 +21,9 @@ type ExamList = Exam & {
 const ExamListPage = async ({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
+  const resolvedSearchParams = await searchParams;
   const { userId, sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
@@ -84,9 +85,11 @@ const ExamListPage = async ({
     </tr>
   );
 
-  const { page, ...queryParams } = await searchParams;
+  const { page, ...queryParams } = resolvedSearchParams;
 
-  const p = page ? parseInt(page) : 1;
+  // const p = page ? parseInt(page) : 1;
+  const pageValue = Array.isArray(page) ? page[0] : page;
+  const p = pageValue ? parseInt(pageValue) : 1;
 
   // URL PARAMS CONDITION
 
@@ -96,16 +99,17 @@ const ExamListPage = async ({
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
+        const normalizedValue = Array.isArray(value) ? value[0] : value;
         switch (key) {
           case "classId":
-            query.lesson.classId = parseInt(value);
+            query.lesson.classId = parseInt(normalizedValue);
             break;
           case "teacherId":
-            query.lesson.teacherId = value;
+            query.lesson.teacherId = normalizedValue;
             break;
           case "search":
             query.lesson.subject = {
-              name: { contains: value, mode: "insensitive" },
+              name: { contains: normalizedValue, mode: "insensitive" },
             };
             break;
           default:

@@ -9,11 +9,13 @@ import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 
 type AnnouncementList = Announcement & { class: Class };
+
 const AnnouncementListPage = async ({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
+  const resolvedSearchParams = await searchParams;
   const { userId, sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
@@ -64,20 +66,28 @@ const AnnouncementListPage = async ({
       </td>
     </tr>
   );
-  const { page, ...queryParams } = await searchParams;
 
-  const p = page ? parseInt(page) : 1;
+  // Extract page and other query params
+  const { page, ...queryParams } = resolvedSearchParams;
+
+  // Normalize page to string (handle array case)
+  const pageValue = Array.isArray(page) ? page[0] : page;
+  const p = pageValue ? parseInt(pageValue) : 1;
 
   // URL PARAMS CONDITION
-
   const query: Prisma.AnnouncementWhereInput = {};
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
+        // Normalize value to string
+        const normalizedValue = Array.isArray(value) ? value[0] : value;
+
         switch (key) {
           case "search":
-            query.title = { contains: value, mode: "insensitive" };
+            if (normalizedValue) {
+              query.title = { contains: normalizedValue, mode: "insensitive" };
+            }
             break;
           default:
             break;
@@ -87,7 +97,6 @@ const AnnouncementListPage = async ({
   }
 
   // ROLE CONDITIONS
-
   const roleConditions = {
     teacher: { lessons: { some: { teacherId: currentUserId! } } },
     student: { students: { some: { id: currentUserId! } } },

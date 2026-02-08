@@ -5,10 +5,12 @@ import EventList from "./EventList";
 const EventCalendarContainer = async ({
   searchParams,
 }: {
-  searchParams: { [keys: string]: string | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  const params = await searchParams;
-  const date = params?.date;
+  const { date } = searchParams;
+
+  // Normalize date to string | undefined (take first value if array)
+  const dateParam = Array.isArray(date) ? date[0] : date;
 
   return (
     <div className="bg-white p-4 rounded-md">
@@ -18,7 +20,7 @@ const EventCalendarContainer = async ({
         <Image src="/moreDark.png" alt="" width={20} height={20} />
       </div>
       <div className="flex flex-col gap-4">
-        <EventList dateParam={date} />
+        <EventList dateParam={dateParam} />
       </div>
     </div>
   );
